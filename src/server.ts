@@ -70,4 +70,6 @@ app.get("*", (req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Main API & Orchestrator server running on http://localhost:${PORT}`);
-});
+});
+
+export default app;
