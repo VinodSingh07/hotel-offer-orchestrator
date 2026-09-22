@@ -61,7 +61,7 @@ app.get("/health", async (_req, res) => {
 app.use("/api", hotelRoutes);
 
 // Fallback route to serve index.html for UI SPA routing if needed
-app.get("*", (req, res, next) => {
+app.get("/{*path}", (req, res, next) => {
   if (req.path.startsWith("/api") || req.path.startsWith("/supplier") || req.path === "/health") {
     return next();
   }

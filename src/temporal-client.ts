@@ -40,13 +40,16 @@ export async function runHotelWorkflow(
 
 export async function checkTemporalHealth(): Promise<boolean> {
   try {
-    const client = await getWorkflowClient();
-    if (client && client.connection) {
-      // Temporal Connection check
-      await (client.connection as any).untilReady?.();
-      return true;
-    }
-    return false;
+    const healthPromise = (async () => {
+      const client = await getWorkflowClient();
+      return Boolean(client && client.connection);
+    })();
+
+    const timeoutPromise = new Promise<boolean>((resolve) =>
+      setTimeout(() => resolve(false), 1500)
+    );
+
+    return await Promise.race([healthPromise, timeoutPromise]);
   } catch {
     return false;
   }

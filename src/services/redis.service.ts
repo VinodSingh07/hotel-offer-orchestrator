@@ -2,11 +2,22 @@ import { createClient } from "redis";
 import { Hotel } from "../types/hotel";
 
 const redis = createClient({
-  url: process.env.REDIS_URL || "redis://localhost:6379"
+  url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+  socket: {
+    reconnectStrategy: (retries) => {
+      if (retries > 3) {
+        return new Error("Redis connection retry limit reached");
+      }
+      return 500;
+    }
+  }
 });
 
 redis.on("error", (error) => {
-  console.error("Redis client error:", error);
+  // Silent warning for redis errors when offline
+  if (process.env.NODE_ENV !== "test") {
+    console.warn("[Redis] Client connection warning:", error?.message || error);
+  }
 });
 
 let isConnecting = false;
