@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotel Offer Orchestrator | Temporal.io & Redis</title>
+  <meta name="description" content="Distributed Hotel Offer Orchestrator powered by Node.js, TypeScript, Express, Temporal.io, Redis, and Docker Compose." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #090d16 0%, #0f172a 50%, #1e1b4b 100%);
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      --secondary: #a855f7;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      position: relative;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #818cf8;
+      box-shadow: 0 0 10px #818cf8;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.15rem;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .grid-top {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid-top {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      transition: border-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .card-title svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--primary);
+    }
+
+    /* Controls form */
+    .controls-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 600px) {
+      .controls-group {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .range-inputs {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      border: none;
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 10px 25px var(--primary-glow);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px var(--primary-glow);
+      filter: brightness(1.1);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    /* System Status List */
+    .status-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 0.85rem 1rem;
+      border-radius: 0.85rem;
+    }
+
+    .status-name {
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .tag-status {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-status.up {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .tag-status.down {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Workflow Diagram */
+    .workflow-diagram {
+      margin-bottom: 2rem;
+    }
+
+    .flow-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      position: relative;
+    }
+
+    @media (max-width: 768px) {
+      .flow-steps {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .flow-step {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 0.85rem;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .flow-step-num {
+      width: 28px;
+      height: 28px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid var(--primary);
+      color: #818cf8;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin: 0 auto 0.75rem auto;
+    }
+
+    .flow-step-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .flow-step-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Results layout */
+    .grid-results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid-results {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hotel-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .hotel-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hotel-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--primary);
+    }
+
+    .hotel-card.supplier-b::before {
+      background: var(--accent);
+    }
+
+    .hotel-card:hover {
+      transform: translateX(4px);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .hotel-info h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .hotel-meta {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.825rem;
+      color: var(--text-muted);
+    }
+
+    .supplier-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+    }
+
+    .hotel-price {
+      text-align: right;
+    }
+
+    .price-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #10b981;
+    }
+
+    .price-unit {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Code JSON Box */
+    pre.json-box {
+      background: rgba(10, 15, 26, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.85rem;
+      padding: 1.25rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #38bdf8;
+      max-height: 420px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Links & Buttons Header */
+    .header-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f1f5f9;
+      padding: 0.5rem 1.2rem;
+      border-radius: 0.6rem;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn-link:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .loader {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="badge-pill">
+        <span class="badge-dot"></span> Temporal.io & Redis Microservice
+      </div>
+      <h1>Hotel Offer Orchestrator</h1>
+      <p class="subtitle">
+        Aggregates overlapping hotel offers from Supplier A & B in parallel using Temporal workflows, deduplicates by cheapest rate, and leverages Redis Sorted Sets for instant price range filtering.
+      </p>
+      
+      <div class="header-links">
+        <a href="https://github.com/VinodSingh07/hotel-offer-orchestrator" target="_blank" class="btn-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+          GitHub Repository
+        </a>
+        <a href="/postman/Hotel_Offer_Orchestrator.postman_collection.json" download class="btn-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download Postman Collection
+        </a>
+        <a href="/health" target="_blank" class="btn-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          Health Check API
+        </a>
+      </div>
+    </header>
+
+    <!-- Controls & System Status Grid -->
+    <div class="grid-top">
+      <!-- Search & Controls Card -->
+      <div class="glass-card">
+        <div class="card-title">
+          <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          Orchestrate Hotel Search
+        </div>
+
+        <form id="searchForm">
+          <div class="controls-group">
+            <div>
+              <label for="cityInput">City Destination</label>
+              <select id="cityInput">
+                <option value="delhi" selected>Delhi (Has Supplier Overlaps)</option>
+                <option value="mumbai">Mumbai</option>
+                <option value="tokyo">Tokyo (Empty Results Test)</option>
+              </select>
+            </div>
+            <div>
+              <label for="simulatedDownSelect">Simulate Supplier Downtime</label>
+              <select id="simulatedDownSelect">
+                <option value="">Both Suppliers Online (Normal)</option>
+                <option value="supplierA">Simulate Supplier A Down</option>
+                <option value="supplierB">Simulate Supplier B Down</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="controls-group">
+            <div>
+              <label for="minPriceInput">Min Price (₹)</label>
+              <input type="number" id="minPriceInput" placeholder="e.g. 5000" />
+            </div>
+            <div>
+              <label for="maxPriceInput">Max Price (₹)</label>
+              <input type="number" id="maxPriceInput" placeholder="e.g. 7000" />
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="btnSubmit">
+            <span id="btnText">Trigger Temporal Workflow</span>
+            <span id="btnSpinner" class="loader" style="display:none;"></span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Infrastructure Status Card -->
+      <div class="glass-card">
+        <div class="card-title">
+          <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          System Health Telemetry
+        </div>
+        <div class="status-list" id="statusList">
+          <div class="status-item">
+            <span class="status-name">Supplier A API</span>
+            <span class="tag-status up" id="stSupplierA">Checking...</span>
+          </div>
+          <div class="status-item">
+            <span class="status-name">Supplier B API</span>
+            <span class="tag-status up" id="stSupplierB">Checking...</span>
+          </div>
+          <div class="status-item">
+            <span class="status-name">Redis Sorted Sets</span>
+            <span class="tag-status up" id="stRedis">Checking...</span>
+          </div>
+          <div class="status-item">
+            <span class="status-name">Temporal Orchestrator</span>
+            <span class="tag-status up" id="stTemporal">Checking...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workflow Diagram Section -->
+    <div class="glass-card workflow-diagram">
+      <div class="card-title">
+        <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        Temporal Workflow Architecture
+      </div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-step-num">1</div>
+          <div class="flow-step-title">Parallel Fetch</div>
+          <div class="flow-step-desc">Workflow calls Supplier A & B activities in parallel</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">2</div>
+          <div class="flow-step-title">Deduplication</div>
+          <div class="flow-step-desc">Matches overlapping hotel names & picks lower price</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">3</div>
+          <div class="flow-step-title">Redis Storage</div>
+          <div class="flow-step-desc">Saves deduplicated list to Redis sorted set (key: hotels:city)</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">4</div>
+          <div class="flow-step-title">Price Range Query</div>
+          <div class="flow-step-desc">Queries Redis ZRANGEBYSCORE with min/max filters</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="grid-results">
+      <!-- Deduplicated Hotel Cards -->
+      <div class="glass-card">
+        <div class="card-title">
+          <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-0 2v16m12 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+          Deduplicated Best Offers (<span id="resultsCount">0</span>)
+        </div>
+        <div class="hotel-cards" id="hotelCards">
+          <div style="color: var(--text-muted); text-align: center; padding: 2rem;">
+            Click <strong>Trigger Temporal Workflow</strong> above to execute search.
+          </div>
+        </div>
+      </div>
+
+      <!-- JSON Raw Response Box -->
+      <div class="glass-card">
+        <div class="card-title">
+          <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+          API JSON Response Payload
+        </div>
+        <pre class="json-box" id="jsonBox">// Response will appear here...</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const searchForm = document.getElementById('searchForm');
+    const cityInput = document.getElementById('cityInput');
+    const simulatedDownSelect = document.getElementById('simulatedDownSelect');
+    const minPriceInput = document.getElementById('minPriceInput');
+    const maxPriceInput = document.getElementById('maxPriceInput');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+
+    const hotelCards = document.getElementById('hotelCards');
+    const jsonBox = document.getElementById('jsonBox');
+    const resultsCount = document.getElementById('resultsCount');
+
+    // Health Telemetry Elements
+    const stSupplierA = document.getElementById('stSupplierA');
+    const stSupplierB = document.getElementById('stSupplierB');
+    const stRedis = document.getElementById('stRedis');
+    const stTemporal = document.getElementById('stTemporal');
+
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+
+        updateStatusTag(stSupplierA, data.suppliers?.supplierA === 'up');
+        updateStatusTag(stSupplierB, data.suppliers?.supplierB === 'up');
+        updateStatusTag(stRedis, data.infrastructure?.redis === 'connected');
+        updateStatusTag(stTemporal, data.infrastructure?.temporal === 'connected');
+      } catch (err) {
+        console.error('Health check failed:', err);
+      }
+    }
+
+    function updateStatusTag(el, isUp) {
+      if (isUp) {
+        el.textContent = 'UP';
+        el.className = 'tag-status up';
+      } else {
+        el.textContent = 'DOWN';
+        el.className = 'tag-status down';
+      }
+    }
+
+    async function runSearch(e) {
+      if (e) e.preventDefault();
+
+      btnText.textContent = 'Orchestrating...';
+      btnSpinner.style.display = 'inline-block';
+      btnSubmit.disabled = true;
+
+      const city = cityInput.value;
+      const simulatedDown = simulatedDownSelect.value;
+      const minPrice = minPriceInput.value;
+      const maxPrice = maxPriceInput.value;
+
+      const params = new URLSearchParams({ city });
+      if (simulatedDown) params.append('simulatedDown', simulatedDown);
+      if (minPrice) params.append('minPrice', minPrice);
+      if (maxPrice) params.append('maxPrice', maxPrice);
+
+      const endpoint = `/api/hotels?${params.toString()}`;
+
+      try {
+        const startTime = performance.now();
+        const response = await fetch(endpoint);
+        const data = await response.json();
+        const duration = Math.round(performance.now() - startTime);
+
+        jsonBox.textContent = JSON.stringify(data, null, 2);
+
+        if (Array.isArray(data)) {
+          resultsCount.textContent = data.length;
+          renderHotelCards(data);
+        } else {
+          resultsCount.textContent = '0';
+          hotelCards.innerHTML = `<div style="color: var(--danger); text-align: center; padding: 2rem;">${data.error || 'Failed to fetch hotels'}</div>`;
+        }
+      } catch (error) {
+        jsonBox.textContent = JSON.stringify({ error: error.message }, null, 2);
+        hotelCards.innerHTML = `<div style="color: var(--danger); text-align: center; padding: 2rem;">Error: ${error.message}</div>`;
+      } finally {
+        btnText.textContent = 'Trigger Temporal Workflow';
+        btnSpinner.style.display = 'none';
+        btnSubmit.disabled = false;
+        checkHealth();
+      }
+    }
+
+    function renderHotelCards(hotels) {
+      if (hotels.length === 0) {
+        hotelCards.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 2rem;">No hotel offers match the requested criteria.</div>`;
+        return;
+      }
+
+      hotelCards.innerHTML = hotels.map(h => `
+        <div class="hotel-card ${h.supplier === 'Supplier B' ? 'supplier-b' : ''}">
+          <div class="hotel-info">
+            <h3>${h.name}</h3>
+            <div class="hotel-meta">
+              <span class="supplier-badge">${h.supplier}</span>
+              <span>Commission: ${h.commissionPct}%</span>
+            </div>
+          </div>
+          <div class="hotel-price">
+            <div class="price-value">₹${h.price.toLocaleString()}</div>
+            <div class="price-unit">Best Price</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    searchForm.addEventListener('submit', runSearch);
+
+    // Initial health check & auto trigger initial search
+    checkHealth();
+    runSearch();
+  </script>
+</body>
+</html>

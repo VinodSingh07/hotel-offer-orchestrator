@@ -1,0 +1,194 @@
+{
+	"info": {
+		"_postman_id": "8f3b2a19-9c31-41e6-b33a-97a1f5928d11",
+		"name": "Hotel Offer Orchestrator",
+		"description": "Postman Collection for testing Hotel Offer Orchestrator microservice built with Node.js, Express, Temporal.io, and Redis.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Get Overlapping Hotels (Delhi)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/hotels?city=delhi",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"hotels"
+					],
+					"query": [
+						{
+							"key": "city",
+							"value": "delhi"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Get Hotels with Price Filter",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=5000&maxPrice=6500",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"hotels"
+					],
+					"query": [
+						{
+							"key": "city",
+							"value": "delhi"
+						},
+						{
+							"key": "minPrice",
+							"value": "5000"
+						},
+						{
+							"key": "maxPrice",
+							"value": "6500"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. City With No Results (Tokyo)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/hotels?city=tokyo",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"hotels"
+					],
+					"query": [
+						{
+							"key": "city",
+							"value": "tokyo"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Health Check Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Simulate Supplier A Down",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/hotels?city=delhi&simulatedDown=supplierA",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"hotels"
+					],
+					"query": [
+						{
+							"key": "city",
+							"value": "delhi"
+						},
+						{
+							"key": "simulatedDown",
+							"value": "supplierA"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Mock Supplier A Directly",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/supplierA/hotels?city=delhi",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"supplierA",
+						"hotels"
+					],
+					"query": [
+						{
+							"key": "city",
+							"value": "delhi"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. Mock Supplier B Directly",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/supplierB/hotels?city=delhi",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"supplierB",
+						"hotels"
+					],
+					"query": [
+						{
+							"key": "city",
+							"value": "delhi"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}
